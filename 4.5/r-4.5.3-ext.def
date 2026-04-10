@@ -1,0 +1,203 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+
+%post
+
+export DEBIAN_FRONTEND=noninteractive
+export TZ=America/Los_Angeles
+
+# Update and upgrade packages
+
+apt-get -y update
+apt-get -y upgrade
+yes | unminimize
+
+# Install packages required for R and R packages
+
+apt-get -y install locales \
+                   tzdata \
+                   gcc \
+                   g++ \
+                   gfortran \
+                   make \
+                   pkgconf \
+                   gnu-which \
+                   gettext \
+                   libssl-dev \
+                   libcurl4-openssl-dev \
+                   curl \
+                   libopenblas-pthread-dev \
+                   zlib1g-dev \
+                   libbz2-dev \
+                   liblzma-dev \
+                   libzstd-dev \
+                   libdeflate-dev \
+                   libtirpc-dev \
+                   libreadline-dev \
+                   libpcre2-dev \
+                   libicu-dev \
+                   libpng-dev \
+                   libjpeg-turbo8-dev \
+                   libtiff-dev \
+                   libcairo2-dev \
+                   libpango1.0-dev \
+                   libx11-dev \
+                   libxt-dev \
+                   libxmu-dev \
+                   tcl-dev \
+                   tk-dev \
+                   file \
+                   less \
+                   man-db \
+                   psmisc \
+                   lsb-release \
+                   bzip2 \
+                   xz-utils \
+                   zstd \
+                   libdeflate-tools \
+                   zip \
+                   unzip \
+                   wget \
+                   rsync \
+                   apt-file \
+                   autoconf \
+                   automake \
+                   libtool \
+                   cmake \
+                   git \
+                   libgit2-dev \
+                   patch \
+                   patchelf \
+                   elfutils \
+                   libpng-tools \
+                   libjpeg-turbo-progs \
+                   libtiff-tools \
+                   openjdk-21-jdk \
+                   libxml2-dev \
+                   tree \
+                   nano \
+                   vim \
+                   time \
+                   openssh-client \
+                   libssh-dev \
+                   python3-pip \
+                   python3-venv \
+                   sqlite3-tools \
+                   libwebp-dev \
+                   librsvg2-dev \
+                   librsvg2-bin \
+                   libmpfr-dev \
+                   libmpfrc++-dev \
+                   libgsl-dev \
+                   libgmp-dev \
+                   libglpk-dev \
+                   libfftw3-dev \
+                   libhdf5-dev \
+                   hdf5-tools \
+                   libnetcdf-dev \
+                   libudunits2-dev \
+                   udunits-bin \
+                   libgeos-dev \
+                   libgeos++-dev \
+                   geos-bin \
+                   libproj-dev \
+                   proj-bin \
+                   libgdal-dev \
+                   gdal-bin \
+                   jags \
+                   jq \
+                   fonts-dejavu \
+                   fonts-liberation \
+                   fonts-urw-base35 \
+                   pandoc \
+                   ghostscript \
+                   libmagick++-dev \
+                   libavfilter-dev \
+                   ffmpeg
+
+# Add en_US locale
+
+locale-gen en_US.UTF-8
+update-locale --reset LANG=en_US.UTF-8
+
+# Download R source code
+
+curl -LO https://cloud.r-project.org/src/base/R-4/R-4.5.3.tar.gz
+tar -xf R-4.5.3.tar.gz
+cd R-4.5.3
+
+# Set compiler flags in config.site
+
+sed -i 's/## CFLAGS=/CFLAGS="-g -O2 -pipe -march=x86-64-v3"/' config.site
+sed -i 's/## CXXFLAGS=/CXXFLAGS="-g -O2 -pipe -march=x86-64-v3"/' config.site
+sed -i 's/## FFLAGS=/FFLAGS="-g -O2 -pipe -march=x86-64-v3"/' config.site
+sed -i 's/## FCFLAGS=/FCFLAGS="-g -O2 -pipe -march=x86-64-v3"/' config.site
+
+# Install R
+
+./configure \
+    --enable-R-shlib \
+    --enable-memory-profiling \
+    --with-blas \
+    --with-lapack \
+    --with-x \
+    --without-recommended-packages
+
+make
+make install
+
+# Add site-wide Renviron
+
+cat << EOF > /usr/local/lib/R/etc/Renviron.site
+# Site-wide Renviron
+
+TZ=America/Los_Angeles
+EOF
+
+# Add site-wide Rprofile
+
+cat << EOF > /usr/local/lib/R/etc/Rprofile.site
+# Site-wide Rprofile
+
+# Use P3M CRAN package binaries for Ubuntu 24.04
+options(repos = c(CRAN = "https://p3m.dev/cran/latest/bin/linux/noble-x86_64/4.5"))
+EOF
+
+# Remove unneeded files
+
+apt-get -y clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /usr/share/info/*
+rm /R-4.5.3.tar.gz
+rm -rf /R-4.5.3
+
+
+%environment
+
+export TZ=America/Los_Angeles
+export R_HOME=/usr/local/lib/R
+
+
+%runscript
+
+R
+
+
+%test
+
+Rscript --version
+
+
+%labels
+
+Author @uschpc
+Software R 4.5.3
+Version 1
+
+
+%help
+
+R 4.5.3 (standard build) on Ubuntu 24.04.
+With extra dependencies for R packages.
+Configured to use P3M CRAN package binaries.
