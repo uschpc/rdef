@@ -14,7 +14,7 @@ echo 'APT::Architecture-Variants "amd64v3";' | tee /etc/apt/apt.conf.d/99amd64v3
 apt-get -y update
 apt-get -y upgrade
 
-# Install packages required for R and R packages
+# Install packages required for R
 
 apt-get -y install unminimize \
                    locales \
@@ -51,72 +51,7 @@ apt-get -y install unminimize \
                    tk-dev \
                    file \
                    less \
-                   man-db \
-                   psmisc \
-                   lsb-release \
-                   bzip2 \
-                   xz-utils \
-                   zstd \
-                   libdeflate-tools \
-                   zip \
-                   unzip \
-                   wget \
-                   rsync \
-                   apt-file \
-                   autoconf \
-                   automake \
-                   libtool \
-                   cmake \
-                   git \
-                   libgit2-dev \
-                   patch \
-                   patchelf \
-                   elfutils \
-                   libpng-tools \
-                   libjpeg-turbo-progs \
-                   libtiff-tools \
-                   openjdk-21-jdk \
-                   libxml2-dev \
-                   tree \
-                   nano \
-                   vim \
-                   time \
-                   openssh-client \
-                   libssh-dev \
-                   python3-pip \
-                   python3-venv \
-                   sqlite3-tools \
-                   libwebp-dev \
-                   librsvg2-dev \
-                   librsvg2-bin \
-                   libmpfr-dev \
-                   libmpfrc++-dev \
-                   libgsl-dev \
-                   libgmp-dev \
-                   libglpk-dev \
-                   libfftw3-dev \
-                   libhdf5-dev \
-                   hdf5-tools \
-                   libnetcdf-dev \
-                   libudunits2-dev \
-                   udunits-bin \
-                   libgeos-dev \
-                   libgeos++-dev \
-                   geos-bin \
-                   libproj-dev \
-                   proj-bin \
-                   libgdal-dev \
-                   gdal-bin \
-                   jags \
-                   jq \
-                   fonts-dejavu \
-                   fonts-liberation \
-                   fonts-urw-base35 \
-                   pandoc \
-                   ghostscript \
-                   libmagick++-dev \
-                   libavfilter-dev \
-                   ffmpeg
+                   man-db
 
 # Unminimize
 
@@ -129,9 +64,9 @@ update-locale --reset LANG=en_US.UTF-8
 
 # Download R source code
 
-curl -LO https://cloud.r-project.org/src/base/R-4/R-4.6.1.tar.gz
-tar -xf R-4.6.1.tar.gz
-cd R-4.6.1
+curl -LO https://cloud.r-project.org/src/base/R-4/R-4.6.2.tar.gz
+tar -xf R-4.6.2.tar.gz
+cd R-4.6.2
 
 # Set compiler flags in config.site
 
@@ -148,6 +83,7 @@ sed -i 's/## FCFLAGS=/FCFLAGS="-g -O2 -pipe -march=x86-64-v3"/' config.site
     --with-blas \
     --with-lapack \
     --with-x \
+    --disable-java \
     --without-recommended-packages
 
 make
@@ -175,8 +111,8 @@ EOF
 apt-get -y clean
 rm -rf /var/lib/apt/lists/*
 rm -rf /usr/share/info/*
-rm /R-4.6.1.tar.gz
-rm -rf /R-4.6.1
+rm /R-4.6.2.tar.gz
+rm -rf /R-4.6.2
 
 
 %environment
@@ -198,12 +134,11 @@ Rscript --version
 %labels
 
 Author @uschpc
-Software R 4.6.1
+Software R 4.6.2
 Version 1
 
 
 %help
 
-R 4.6.1 (standard build) on Ubuntu 26.04.
-With extra dependencies for R packages.
+R 4.6.2 (standard build) on Ubuntu 26.04.
 Configured to use P3M CRAN package binaries.
